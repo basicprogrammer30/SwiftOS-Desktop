@@ -40,9 +40,10 @@ find_package(KF5 REQUIRED COMPONENTS
     Runner
 )
 
-find_package(KDecorations REQUIRED CONFIG)
+find_package(KDecoration2 REQUIRED CONFIG)
 find_package(LibKWorkspace CONFIG REQUIRED)
-find_package(LibTaskManager CONFIG REQUIRED)
+find_package(LibTaskManager REQUIRED CONFIG)
+include_directories(${LibTaskManager_INCLUDE_DIRS})
 find_package(KWinDBusInterface CONFIG REQUIRED)
 find_package(ScreenSaverDBusInterface CONFIG REQUIRED)
 find_package(KRunnerAppDBusInterface CONFIG REQUIRED)

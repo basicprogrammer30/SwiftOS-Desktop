@@ -21,12 +21,15 @@
 #define DIRECTORYPICKER_H
 
 #include <QUrl>
+#include <QObject>
 
 class QFileDialog;
 
 class DirectoryPicker : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QUrl url READ url NOTIFY urlChanged)
+public:
 
     Q_PROPERTY(QUrl url READ url NOTIFY urlChanged)
 

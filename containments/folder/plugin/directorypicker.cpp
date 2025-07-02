@@ -21,11 +21,13 @@
 
 #include <QFileDialog>
 #include <QStandardPaths>
-
+#include <QObject>
+#include <QDialog>
 #include <KLocalizedString>
 
-DirectoryPicker::DirectoryPicker(QObject *parent) : QObject(parent),
-    m_dialog(0)
+DirectoryPicker::DirectoryPicker(QObject *parent)
+    : QObject(parent)
+    , m_dialog(nullptr)
 {
 }
 
