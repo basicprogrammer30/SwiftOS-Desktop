@@ -14,7 +14,10 @@ install(FILES plugin/qmldir DESTINATION ${QML_INSTALL_DIR}/org/kde/plasma/privat
 add_library(taskmanagerplugin SHARED ${taskmanagerplugin_SRCS})
 
 # Add include directories for LibTaskManager
-include_directories(${CMAKE_SOURCE_DIR}/applets/taskmanager/plugin)
+include_directories(
+    ${CMAKE_SOURCE_DIR}/applets/taskmanager/plugin
+    /usr/include
+)
 
 target_link_libraries(taskmanagerplugin
                       PW::LibTaskManager

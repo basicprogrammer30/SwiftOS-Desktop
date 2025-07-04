@@ -22,7 +22,7 @@
 #include <kactioncollection.h>
 #include <kaction.h>
 #include <klocalizedstring.h>
-#include <kglobalaccel.h>
+#include <KGlobalAccel/KGlobalAccel>
 #include <kaboutdata.h>
 
 #include <QtCore/QList>

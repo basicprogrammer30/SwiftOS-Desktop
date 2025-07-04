@@ -23,7 +23,7 @@
 #include <kdebug.h>
 #include <klocale.h>
 #include <kglobalsettings.h>
-#include <KGlobalAccel>
+#include <KGlobalAccel/KGlobalAccel>
 
 #include <QMessageBox>
 #include <QWidget>

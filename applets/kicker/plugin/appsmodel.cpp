@@ -28,7 +28,7 @@
 #include <KRun>
 #include <KSycoca>
 
-AppGroupEntry::AppGroupEntry(KServiceGroup::Ptr group, QAbstractListModel *parentModel,
+AppGroupEntry::AppGroupEntry(const KServiceGroup* group, QAbstractListModel *parentModel,
     bool flat, int appNameFormat)
 {
     m_name = group->caption();
@@ -39,7 +39,7 @@ AppGroupEntry::AppGroupEntry(KServiceGroup::Ptr group, QAbstractListModel *paren
     QObject::connect(m_model, SIGNAL(appLaunched(QString)), parentModel, SIGNAL(appLaunched(QString)));
 }
 
-AppEntry::AppEntry(KService::Ptr service, NameFormat nameFormat)
+AppEntry::AppEntry(const KService* service, NameFormat nameFormat)
 : m_service(service)
 {
     const QString &name = service->name();
@@ -162,7 +162,7 @@ bool AppsModel::trigger(int row, const QString &actionId, const QVariant &argume
         m_containmentInterface->addLauncher(ContainmentInterface::TaskManager,
             static_cast<AppEntry *>(m_entryList.at(row))->service()->entryPath());
     } else if (actionId.isEmpty()) {
-        KService::Ptr service = static_cast<AppEntry *>(m_entryList.at(row))->service();
+        const KService* service = static_cast<AppEntry*>(m_entryList.at(row))->service();
 
         bool ran = KRun::run(*service, QList<QUrl>(), 0);
 
@@ -245,14 +245,14 @@ void AppsModel::refresh()
     m_entryList.clear();
 
     if (m_entryPath.isEmpty()) {
-        KServiceGroup::Ptr group = KServiceGroup::root();
-        KServiceGroup::List list = group->entries(true);
+        const KServiceGroup* group = KServiceGroup::root().data();
+        KServiceGroup::List list = const_cast<KServiceGroup*>(group)->entries(true);
 
         for (KServiceGroup::List::ConstIterator it = list.constBegin(); it != list.constEnd(); it++) {
-            const KSycocaEntry::Ptr p = (*it);
+            const KSycocaEntry* p = it->data();
 
             if (p->isType(KST_KServiceGroup)) {
-                KServiceGroup::Ptr subGroup = qExplicitlySharedDataPointerCast<KServiceGroup>(p);
+                const KServiceGroup* subGroup = static_cast<const KServiceGroup*>(p);
 
                 if (!subGroup->noDisplay() && subGroup->childCount() > 0) {
                     m_entryList << new AppGroupEntry(subGroup, this, m_flat, m_appNameFormat);
@@ -267,7 +267,7 @@ void AppsModel::refresh()
 
         connect(KSycoca::self(), SIGNAL(databaseChanged(QStringList)), SLOT(checkSycocaChanges(QStringList)));
     } else {
-        KServiceGroup::Ptr group = KServiceGroup::group(m_entryPath);
+        const KServiceGroup* group = KServiceGroup::group(m_entryPath).data();
         processServiceGroup(group);
 
         if (m_sortNeeded) {
@@ -281,21 +281,20 @@ void AppsModel::refresh()
 
     emit countChanged();
 }
-
-void AppsModel::processServiceGroup(KServiceGroup::Ptr group)
+void AppsModel::processServiceGroup(const KServiceGroup* group)
 {
     if (!group || !group->isValid()) {
         return;
     }
 
-    KServiceGroup::List list = group->entries(true);
+    KServiceGroup::List list = const_cast<KServiceGroup*>(group)->entries(true);
 
     for (KServiceGroup::List::ConstIterator it = list.constBegin();
         it != list.constEnd(); it++) {
-        const KSycocaEntry::Ptr p = (*it);
+        const KSycocaEntry* p = it->data();
 
         if (p->isType(KST_KService)) {
-            const KService::Ptr service = qExplicitlySharedDataPointerCast<KService>(p);
+            const KService* service = static_cast<const KService*>(p);
 
             if (!service->noDisplay()) {
                 bool found = false;
@@ -314,11 +313,11 @@ void AppsModel::processServiceGroup(KServiceGroup::Ptr group)
 
         } else if (p->isType(KST_KServiceGroup)) {
             if (m_flat) {
-                processServiceGroup(static_cast<KServiceGroup::Ptr>(p));
+                processServiceGroup(static_cast<KServiceGroup*>(const_cast<KSycocaEntry*>(p)));
 
                 m_sortNeeded = true;
             } else {
-                const KServiceGroup::Ptr subGroup = static_cast<KServiceGroup::Ptr>(p);
+                const KServiceGroup* subGroup = static_cast<const KServiceGroup*>(p);
 
                 if (!subGroup->noDisplay() && subGroup->childCount() > 0) {
                     m_entryList << new AppGroupEntry(subGroup, this, m_flat, m_appNameFormat);

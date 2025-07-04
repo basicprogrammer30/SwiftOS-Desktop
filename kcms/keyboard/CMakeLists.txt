@@ -1,5 +1,5 @@
 add_definitions(-DTRANSLATION_DOMAIN=\"kcmkeyboard\")
- 
+
 set(CMAKE_REQUIRED_LIBRARIES -lXi)
 check_function_exists(_XiGetDevicePresenceNotifyEvent XiGetDevicePresenceNotifyEvent_EXISTS)
 
@@ -50,10 +50,15 @@ target_link_libraries(kded_keyboard
     KF5::Plasma
     KF5::XmlGui
     KF5::KDELibs4Support
+    X11::X11
+    X11::Xi
+    X11::Xtst
     XCB::XCB
-    XCB::XKB
-    ${X11_LIBRARIES}
-    ${X11_Xkbfile_LIB}
+    ${XCB_XKB_LIBRARIES}
+    X11::X11
+    X11::Xkbfile
+    X11::Xrender
+    X11::Xext
  )
 
 if(X11_XTest_FOUND)

@@ -57,6 +57,6 @@ target_link_libraries(kickerplugin
                       KF5::Service
                       KF5::Solid
                       KF5::WindowSystem
-                      PW::KWorkspace)
+                      kworkspace5)
 
 install(TARGETS kickerplugin DESTINATION ${QML_INSTALL_DIR}/org/kde/plasma/private/kicker)

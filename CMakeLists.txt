@@ -1,7 +1,9 @@
+cmake_minimum_required(VERSION 3.16.0 FATAL_ERROR)
 project(plasma-desktop)
+set(QT_MIN_VERSION "5.15.2")
 
-cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
-set(QT_MIN_VERSION "5.3.0")
+# Set policies to handle deprecation warnings
+cmake_policy(SET CMP0028 NEW)  # Handle double-colon targets properly
 
 find_package(ECM 0.0.11 REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR})
@@ -15,6 +17,8 @@ include(ECMMarkNonGuiExecutable)
 include(FeatureSummary)
 include(CheckIncludeFiles)
 
+find_package(OpenGL REQUIRED)
+
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
     Quick
     DBus
@@ -23,6 +27,7 @@ find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
     Svg
     Test
     Concurrent
+    OpenGL
 )
 
 find_package(KF5 REQUIRED COMPONENTS
@@ -38,6 +43,9 @@ find_package(KF5 REQUIRED COMPONENTS
     Attica
     Wallet
     Runner
+    GlobalAccel
+    WindowSystem
+    KIO
 )
 
 find_package(KDecoration2 REQUIRED CONFIG)
@@ -48,6 +56,119 @@ find_package(KWinDBusInterface CONFIG REQUIRED)
 find_package(ScreenSaverDBusInterface CONFIG REQUIRED)
 find_package(KRunnerAppDBusInterface CONFIG REQUIRED)
 find_package(KSMServerDBusInterface CONFIG REQUIRED)
+
+# Find X11 and related libraries with debug output
+message(STATUS "Looking for X11 and components...")
+
+# First find X11 with required components
+find_package(X11 REQUIRED)
+message(STATUS "X11_FOUND: ${X11_FOUND}")
+message(STATUS "X11_INCLUDE_DIR: ${X11_INCLUDE_DIR}")
+message(STATUS "X11_LIBRARIES: ${X11_LIBRARIES}")
+
+# Now find individual X11 components
+find_package(X11 COMPONENTS X11 Xext Xrender Xtst Xkbfile)
+
+# Debug output for X11 components
+message(STATUS "X11_X11_FOUND: ${X11_X11_FOUND}")
+message(STATUS "X11_Xext_FOUND: ${X11_Xext_FOUND}")
+message(STATUS "X11_Xrender_FOUND: ${X11_Xrender_FOUND}")
+message(STATUS "X11_Xtst_FOUND: ${X11_Xtst_FOUND}")
+message(STATUS "X11_Xkbfile_FOUND: ${X11_Xkbfile_FOUND}")
+
+# Set X11 include directories
+set(X11_INCLUDE_DIRS 
+    ${X11_INCLUDE_DIR} 
+    ${X11_Xext_INCLUDE_PATH} 
+    ${X11_Xrender_INCLUDE_PATH} 
+    ${X11_Xtst_INCLUDE_PATH} 
+    ${X11_Xkbfile_INCLUDE_PATH}
+)
+
+# Add additional include directories for KDE components
+include_directories(
+    /usr/include/kworkspace5
+    /usr/include
+    /usr/include/KF5/KWorkspace
+    /usr/include/KF5/KWindowSystem
+    /usr/include/KF5/KI18n
+    /usr/include/KF5/KIO
+    /usr/include/KF5/KConfig
+    /usr/include/KF5/KCoreAddons
+    /usr/include/KF5/KWidgetsAddons
+    /usr/include/KF5/Plasma
+    /usr/include/KF5/PlasmaQuick
+)
+
+# Set X11 library variables
+set(X11_LIBRARIES 
+    ${X11_X11_LIB}
+    ${X11_Xext_LIB}
+    ${X11_Xrender_LIB}
+    ${X11_Xtst_LIB}
+    ${X11_Xkbfile_LIB}
+    ${OPENGL_LIBRARIES}
+)
+
+# Print final X11 variables for debugging
+message(STATUS "X11_INCLUDE_DIRS: ${X11_INCLUDE_DIRS}")
+message(STATUS "X11_LIBRARIES: ${X11_LIBRARIES}")
+
+# Create imported targets for X11 libraries if they don't exist
+if(NOT TARGET X11::X11)
+    add_library(X11::X11 UNKNOWN IMPORTED)
+    set_target_properties(X11::X11 PROPERTIES
+        IMPORTED_LOCATION "${X11_X11_LIB}"
+        INTERFACE_INCLUDE_DIRECTORIES "${X11_INCLUDE_DIR}"
+    )
+endif()
+
+if(NOT TARGET X11::Xext)
+    add_library(X11::Xext UNKNOWN IMPORTED)
+    set_target_properties(X11::Xext PROPERTIES
+        IMPORTED_LOCATION "${X11_Xext_LIB}"
+        INTERFACE_INCLUDE_DIRECTORIES "${X11_Xext_INCLUDE_PATH}"
+    )
+endif()
+
+if(NOT TARGET X11::Xrender)
+    add_library(X11::Xrender UNKNOWN IMPORTED)
+    set_target_properties(X11::Xrender PROPERTIES
+        IMPORTED_LOCATION "${X11_Xrender_LIB}"
+        INTERFACE_INCLUDE_DIRECTORIES "${X11_Xrender_INCLUDE_PATH}"
+    )
+endif()
+
+if(NOT TARGET X11::Xtst)
+    add_library(X11::Xtst UNKNOWN IMPORTED)
+    set_target_properties(X11::Xtst PROPERTIES
+        IMPORTED_LOCATION "${X11_Xtst_LIB}"
+        INTERFACE_INCLUDE_DIRECTORIES "${X11_Xtst_INCLUDE_PATH}"
+    )
+endif()
+
+if(NOT TARGET X11::Xkbfile)
+    add_library(X11::Xkbfile UNKNOWN IMPORTED)
+    set_target_properties(X11::Xkbfile PROPERTIES
+        IMPORTED_LOCATION "${X11_Xkbfile_LIB}"
+        INTERFACE_INCLUDE_DIRECTORIES "${X11_Xkbfile_INCLUDE_PATH}"
+    )
+endif()
+
+# Find XCB and XKB
+find_package(XCB REQUIRED)
+find_library(XCB_XKB_LIBRARY NAMES xcb-xkb)
+find_path(XCB_XKB_INCLUDE_DIR NAMES xcb/xkb.h PATH_SUFFIXES xcb)
+
+if(XCB_XKB_INCLUDE_DIR AND XCB_XKB_LIBRARY)
+    set(XCB_XKB_FOUND TRUE)
+    set(XCB_XKB_LIBRARIES ${XCB_XKB_LIBRARY})
+    set(XCB_XKB_INCLUDE_DIRS ${XCB_XKB_INCLUDE_DIR})
+else()
+    set(XCB_XKB_FOUND FALSE)
+    message(WARNING "XCB XKB not found, keyboard module may not work correctly")
+endif()
+
 find_package(KF5ItemModels CONFIG REQUIRED)
 find_package(KF5Emoticons CONFIG REQUIRED)
 

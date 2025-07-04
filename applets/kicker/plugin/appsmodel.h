@@ -35,7 +35,7 @@ class QTimer;
 class AppGroupEntry : public AbstractGroupEntry
 {
     public:
-        AppGroupEntry(KServiceGroup::Ptr group, QAbstractListModel *parentModel,
+        AppGroupEntry(const KServiceGroup* group, QAbstractListModel *parentModel,
             bool flat, int appNameFormat);
 };
 
@@ -49,14 +49,14 @@ class AppEntry : public AbstractEntry
             GenericNameAndName
         };
 
-        AppEntry(KService::Ptr service, NameFormat nameFormat);
+        AppEntry(const KService* service, NameFormat nameFormat);
 
         EntryType type() const { return RunnableType; }
 
-        KService::Ptr service() const { return m_service; }
+        const KService* service() const { return m_service; }
 
     private:
-        KService::Ptr m_service;
+        const KService* m_service;
 };
 
 class AppsModel : public AbstractModel
@@ -103,7 +103,7 @@ class AppsModel : public AbstractModel
         QList<AbstractEntry *> m_entryList;
 
     private:
-        void processServiceGroup(KServiceGroup::Ptr group);
+        void processServiceGroup(const KServiceGroup* group);
 
         QString m_entryPath;
         QTimer *m_changeTimer;

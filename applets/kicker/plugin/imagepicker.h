@@ -20,9 +20,10 @@
 #ifndef IMAGEPICKER_H
 #define IMAGEPICKER_H
 
+#include <QObject>
 #include <QUrl>
-
-class QFileDialog;
+#include <QDialog>
+#include <QFileDialog>
 
 class ImagePicker : public QObject
 {

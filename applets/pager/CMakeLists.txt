@@ -8,6 +8,11 @@ set(pager_SRCS
 
 add_library(pagerplugin SHARED ${pager_SRCS})
 
+# Add include directories for LibTaskManager
+include_directories(
+    ${CMAKE_SOURCE_DIR}/applets/taskmanager/plugin/libtaskmanager
+)
+
 target_link_libraries(pagerplugin
                       KF5::KIOCore
                       KF5::WindowSystem
